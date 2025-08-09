@@ -1,0 +1,285 @@
+---
+title: "INSIGHTS FROM THE 2015 WORLD HAPPINESS DATA"
+author: "LATIF KADIR"
+output:
+  word_document: default
+  html_notebook: default
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+
+## Overview of the project
+This project was intended to analyze the world happiness data and produce a report to inform policy making. This objective was achieved by extracting, cleaning, wrangling, analyzing, and interpreting the results from the data. 
+
+## Questions to be addressed
+This project is designed to address the following questions:
+
+1.	What is the relationship between Freedom and Happiness score?
+2.	What is the relationship between corruption and Happiness score?
+3.	What is the relationship between Life expectancy and Happiness score?
+4.	What is the average happiness score per region?
+5.  What is the effect of the predictors on the outcome variable, happiness.
+
+The stakeholders include public policy makers as well as various government officials.
+
+## Tools for the analysis
+The dataset for the analysis was sourced from World Happiness Report. The dataset is stored in Kaggle.  The analysis was based on the data for the year 2015. The happiness scores and ranking use data from the Gallup World Pool.
+RStudio will be used to analyse the data because of the following reasons:
+
+- With a given dataset, any analysis made with R can be reproduced at any point in time by the managers or any other person interested in verifying the authenticity of the results.
+
+- R comes with several packages which aid in all aspects of analysis ranging from descriptive analysis, inferential analysis, as well as making visualization.
+
+- Moreover, R software is suitable for handling large datasets.
+
+
+## Load libraries
+```{r setup, message=FALSE, warning=FALSE}
+## Load the data
+library(tidyverse)
+library(dplyr)
+library(haven)
+library(psych)
+library(nlme)
+library(plm)
+```
+
+
+
+## Performing ETL
+```{r}
+## Load the data
+happiness_data<- read.csv("2015.csv")
+
+## Summary statistics
+str(happiness_data) ## structure of the data
+summary(happiness_data) ## summary of the data
+sum(is.na(happiness_data)) ## checking total missing values
+describe(happiness_data[, c(4,6:11)]) ## descriptives of the numeric variables
+
+
+## checking distinct countries and Regions
+n_distinct(happiness_data$Region) ## 10 regions
+n_distinct(happiness_data$Country) ## 158 countries
+
+## Plotting total number of countries in each Region
+count_in_Reg <- happiness_data |>
+                    group_by(Region) |>
+                    summarise(total_countries = n()) |>
+                    arrange(desc(total_countries))
+  
+count_in_Reg
+
+## Plot the total number of countries in each Region
+ggplot(data = count_in_Reg, aes(x = reorder(Region, total_countries), 
+             y = total_countries)) +
+  geom_bar(stat = "identity", fill = "#708090") + 
+  coord_flip() + 
+  labs(x = "Regions",
+       y = "Number of countries",
+       title = "Number of countries per Region") +
+  theme_minimal(base_size = 14) +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+
+## create an ID for the regions (to serve as cluster ID)
+happiness_data <- happiness_data |>
+  mutate(region_id = case_when(
+    Region == "Australia and New Zealand" ~ 1,
+    Region == "Central and Eastern Europe" ~ 2,
+    Region == "Eastern Asia" ~ 3,
+    Region == "Latin America and Caribbean" ~ 4,
+    Region == "Middle East and Northern Africa" ~ 5,
+    Region == "North America" ~ 6,
+    Region == "Southeastern Asia" ~ 7,
+    Region == "Southern Asia" ~ 8,
+    Region == "Sub-Saharan Africa" ~ 9,
+    Region == "Western Europe"~ 10
+  ))
+
+
+## Histogram of the outcome variable
+happiness_data |> 
+  ggplot(aes(x = Happiness.Score)) +
+  geom_histogram(fill = "#708090") +
+  labs(title = "Histogram of happiness score",
+       x = "Level of happiness") + 
+  theme_minimal(base_size = 14) +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+
+## Boxplot of happiness score by regions
+happiness_data |> 
+  ggplot(aes(x = Happiness.Score, y = Region, fill = Region)) +
+  geom_boxplot() +
+  labs(
+    title = "Happiness Scores by Region",
+    x = "Level of happiness",
+    y = "Region"
+  ) + 
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "none") ## no legend is needed
+```
+
+- The bar graph and the ```count_in_Reg``` data, it could be observed that the region with the highest number of countries is *Sub-Saharan Africa*, and the region with the lowest number of countries in the data is *Australia and New Zealand*.
+
+- From the box plot, it appears that *Sub-Saharan African* region has the lowest level happiness, whiles *Australia and New Zealand*, *Western Europe*, and *North America* had the highest level of happiness.
+
+## Checking the correlation between freedom and happiness score
+```{r}
+cor(happiness_data$Happiness.Score, happiness_data$Freedom) ## 0.5682
+
+happiness_data |> 
+  ggplot(aes(x=Happiness.Score,y=Freedom, color=Region)) +
+  geom_point(size=2)+
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Scatterplot of freedom and happiness",
+       x= "Level of happiness",
+       y= "Level of Freedom") +
+  theme_minimal(base_size = 14) 
+  
+```
+
+From the scatter plot above, it can be observed that there exists a positive correlation between Freedom and Happiness score across all Regions except Eastern Asia. That is, the higher the level of freedom, the higher the happiness score. The correlation coefficient for the entire data is 0.5682, indicating a moderate positive correlation between Freedom and Happiness scores.
+
+
+## Checking the correlation between Corruption and Happiness score
+```{r}
+
+cor(happiness_data$Happiness.Score,happiness_data$Trust..Government.Corruption.) ## 0.3952
+
+happiness_data |> 
+  ggplot(aes(x= Happiness.Score, y=Trust..Government.Corruption., color=Region)) +
+  geom_point(size=2)+
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Scatterplot of corruption and happiness",
+       x = "Level of happiness",
+       y = "corruption") +
+  theme_minimal(base_size = 14) 
+```
+
+From the scatter plot above, it appears that there exists a weak correlation between corruption and happiness. The correlation coefficient of 0.3952 for the entire dataset indicates a weak positive correlation between corruption and happiness.
+
+
+## Checking the correlation between Life Expectancy and Happiness score
+```{r}
+
+cor(happiness_data$Happiness.Score,happiness_data$Health..Life.Expectancy.) ## 0.7242
+
+happiness_data |> 
+  ggplot(aes(x= Happiness.Score, y=Health..Life.Expectancy., color=Region)) +
+  geom_point(size=2)+
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Scatterplot of life expectancy and happiness",
+       x = "Level of happiness",
+       y = "Life Expectancy") +
+  theme_minimal(base_size = 14) 
+```
+
+From the scatter plot above, it appears that there exists a strong positive correlation between Life expectancy and Happiness score. That is, the higher the life expectancy rate, the higher the happiness score. This is supported by a high correlation coefficient of 0.7242.
+
+
+
+## Graph of level of happiness by Regions
+```{r}
+Happiness_by_Region <- happiness_data |> 
+  group_by(Region) |> 
+  summarise(Avg_Happiness_Score=mean(Happiness.Score))|>
+  arrange(desc(Avg_Happiness_Score))
+Happiness_by_Region
+
+
+ggplot(data = Happiness_by_Region, aes(x = reorder(Region, Avg_Happiness_Score), 
+             y = Avg_Happiness_Score)) +
+  geom_bar(stat = "identity", fill = "#708090") + 
+  coord_flip() + 
+  labs(x ="Region",
+       y = "Level of happiness",
+       title = "Average happiness score by Region") +
+  theme_minimal(base_size = 14) +
+  theme(
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+```
+
+From the graph above, it could be seen that the region with the highest the highest average happiness score is “Australia and New Zealand” while the region with the lowest average happiness score is “Sub-Saharan Africa".
+
+
+## Running an Ordinary Least Square Regression for the model
+```{r}
+## simple regression
+model1 <- lm(formula = Happiness.Score~Economy..GDP.per.Capita. + Freedom + Family + Health..Life.Expectancy. + Generosity + Trust..Government.Corruption., data=happiness_data)
+summary(model1)
+
+## Fixed effect model (Region fixed effect)
+happiness_data <- happiness_data |>
+  mutate(Region = as.factor(Region),
+         region_id = as.factor(region_id))
+
+model2 <- lm(formula = Happiness.Score~Economy..GDP.per.Capita. + Freedom + Family + Health..Life.Expectancy. + Generosity + Trust..Government.Corruption. + Region, data=happiness_data)
+summary(model2)
+
+## using plm for the fixed effect model
+model3 <- plm(
+  Happiness.Score ~ Economy..GDP.per.Capita. + Freedom + Family +
+    Health..Life.Expectancy. + Generosity + Trust..Government.Corruption.,
+  data = happiness_data,
+  index = "region_id",  ## we can just use index = "Region" and get same results
+  model = "within"
+)
+summary(model3)
+
+## Random intercept model
+## First, build intercept-only model to help compute the ICC
+model4 <- lme(fixed = Happiness.Score ~ 1,
+              random = ~ 1|region_id, 
+              data = happiness_data)
+summary(model4)
+
+# Extract variance components to compute the ICC
+var_components <- VarCorr(model4)
+var_between <- as.numeric(var_components["(Intercept)", "Variance"])
+var_within  <- as.numeric(var_components["Residual", "Variance"])
+
+# Compute ICC 
+icc <- var_between / (var_between + var_within)
+icc                    ## ICC = 0.62
+
+## Now, the full multilevel model
+model5 <- lme(fixed = Happiness.Score ~ Economy..GDP.per.Capita. + Freedom + Family +
+              Health..Life.Expectancy. + Generosity + Trust..Government.Corruption.,
+              random = ~ 1|region_id, 
+              data = happiness_data)
+summary(model5)
+
+```
+
+## Results
+The results from the multiple linear regression model, ```model1```, showed that GDP per capita, Family, Life expectancy, and Freedom have a positive effect and statistically significant effect on happiness. However, this single level regression model ignores that fact that countries are nested within regions. In other words, this model did not consider the clustering effects. Countries within one region might have some unique common characteristics which distinguishes them from other regions. That is, theoretically, observations from countries within a specific region are expected to be correlated and this has to be taken into account. To address this problem, three different models were considered:
+
+- Region-fixed effect model, ```model2```, by manually creating the Region dummy variables. This is same as the linear regression model with the inclusion of the factor, ```Region```, as a predictor. We could have also used ```region_id``` as the factor. 
+
+- In ```model3```, we used the ```plm``` package to run the Region fixed effect model. It should be noted that the results from ```model2``` and ```model3``` are the same as expected.
+
+- In ```model4``` and ```model5```, we run a multilevel model. ```model4``` is an intercept-only (i.e., null) model. This model was fitted to help compute the Intra-Class Correlation Coefficient (ICC). The ```ICC``` was found to be 0.62, indicating that about 62% of the total variance in the outcome variable can be explained by the clusters (i.e., regions). This further confirmed the need for considering the clusters in the analysis. Therefore, ```model5```, a random intercept model, was fitted.
+
+The results of all of these models (i.e., linear regression, fixed-effect model, and random-intercept model) were similar. Specifically, all models showed that GDP per-capita, Freedom, Family, and trust in government have positive and statistically significant effect on both happiness. That is, the higher the GDP per-capita, levels of freedom, positive family relationship, and trust in government the higher the level of happiness.
+
+
+## Conclusion
+  From the above analysis, it was found that freedom, life expectancy, GDP per capita, and Family have significant impact on the level of happiness in each sub-region. Also, Sub-Saharan Africa has the lowest average happiness score whilst Australia and New Zealand has the highest happiness score.
+
+  It is therefore recommended that various leaders, especially, governments from the Sub-Sahara African countries should put in much effort to reduce corruption and increase the level of trust of the citizens in the government. Also, policies and programs should be put in place to ensure productivity within the country. This will result in an increase in GDP per-capita  subsequently lead to an increase in the level of happiness. 
+
+
+
