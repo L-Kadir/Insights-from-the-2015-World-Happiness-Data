@@ -1,5 +1,13 @@
 # Insights from the 2015 World Happiness Data
 
+# Table of Contents
+- [Project Overview](#project-overview)
+- [Data and Statistical Software](#data-and-statistical-software)
+- [ETL](#etl)
+- [Data Analysis and Results](#data-analysis-and-results)
+- [Conclusion and Recommendation](#conclusion-and-recommendation)
+
+
 ## Project Overview
 This project was intended to analyze the world happiness data and produce a report to inform policy making. This objective was achieved by extracting, cleaning, wrangling, analyzing, and interpreting the results from the data. The stakeholders include public policy makers as well as various government officials. This project was intended to address the following questions:
 
@@ -10,7 +18,7 @@ This project was intended to analyze the world happiness data and produce a repo
 - What is the effect of the predictors on the outcome variable, happiness?
 ---
 
-## Data and statistical software
+## Data and Statistical Software
 The dataset for the analysis was sourced from World Happiness Report. The dataset is stored in Kaggle. The analysis was based on the data for the year 2015. The happiness scores and ranking use data from the Gallup World Pool. RStudio will be used to analyse the data because of the following reasons:
 
 - With a given dataset, any analysis made with R can be reproduced at any point in time by the managers or any other person interested in verifying the authenticity of the results.
@@ -34,7 +42,7 @@ The following tasks were performed to understand and prepare the data for analys
   - The bar graph it could be observed that the Region with the highest number of countries is Sub-Saharan Africa, and the Region with the lowest number of countries in the data is Australia and New Zealand.
   - From the box plot, it can be observed that Sub-Saharan African Region has the lowest level happiness, whiles Australia and New Zealand, Western Europe, and North America had the higher levels of happiness.
 
-## Data analysis and Results
+## Data Analysis and Results
 To address the first three questions, correlation coefficients were computed and the relationship between the predictors were visualized using scatterplots.
 
 - What is the relationship between Freedom and Happiness score?
@@ -82,9 +90,7 @@ The results from the multiple linear regression model, model1, showed that GDP p
 The results of all of these models (i.e., linear regression, fixed-effect model, and random-intercept model) were similar. Specifically, all models showed that GDP per-capita, Freedom, Family, and trust in government have positive and statistically significant effect on both happiness. That is, the higher the GDP per-capita, levels of freedom, positive family relationship, and trust in government the higher the level of happiness.
 
 
-## Conclusion/Recommendation
-From the above analysis, it was found that freedom, life expectancy, GDP per capita, and Family have significant impact on the level of happiness in each sub-region. Also, Sub-Saharan Africa has the lowest average happiness score whilst Australia and New Zealand has the highest happiness score.
-
-It is therefore recommended that various leaders, especially, governments from the Sub-Sahara African countries should put in much effort to reduce corruption and increase the level of trust of the citizens in the government. Also, policies and programs should be put in place to ensure productivity within the country. This will result in an increase in GDP per-capita subsequently lead to an increase in the level of happiness.
+## Conclusion and Recommendation
+This project was conducted to gain some insights from the World Happiness Data. The results showed that Sub-Saharan Africa experience the lowest level of happiness, while Australia and New Zealand, Western Europe, and North America experience higher levels of happiness. From the statistical models, it was found that freedom, life expectancy, GDP per capita, and Family have significant impact on the level of happiness in each sub-region. Also, Sub-Saharan Africa has the lowest average happiness score whilst Australia and New Zealand has the highest happiness score. It is therefore recommended that various leaders, especially, governments from the Sub-Sahara African countries should put in much effort to reduce corruption and increase the level of trust of the citizens in the government. Also, policies and programs should be put in place to ensure productivity within the country. This will result in an increase in GDP per-capita subsequently lead to an increase in the level of happiness.
 
 
