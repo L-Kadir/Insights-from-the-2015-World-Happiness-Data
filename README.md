@@ -1,4 +1,4 @@
-# Insights from the 2015 World Happiness Data
+# Determinants of Happiness: Analyzing the 2015 World Happiness Data
 
 # Table of Contents
 - [Project Overview](#project-overview)
